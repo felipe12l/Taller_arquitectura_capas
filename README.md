@@ -265,16 +265,6 @@ Código del curso: SW201
 - **Patrón de Arquitectura**: Arquitectura en 3 Capas
 - **Patrón de Diseño**: DAO (Data Access Object)
 
-## 👨‍💻 Autores
-
-- Sistema Académico - UPTC
-- Curso: Software 2
-- Semestre 9
-
-## 📄 Licencia
-
-Este proyecto es de uso académico para el curso de Software 2 de la UPTC.
-
 ---
 
-**Nota**: Este sistema utiliza almacenamiento en memoria, por lo que los datos se pierden al cerrar la aplicación. En una versión futura se podría implementar persistencia en base de datos o archivos.
+**Nota**: Este sistema utiliza almacenamiento en memoria, por lo que los datos se pierden al cerrar la aplicación. 
