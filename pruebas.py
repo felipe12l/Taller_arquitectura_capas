@@ -172,6 +172,35 @@ def ejecutar_pruebas():
         print(
             f"    - {mat['estudiante']['nombre']} → {mat['curso']['nombre']}")
 
+    print("\n5. PRUEBAS DE AUTENTICACIÓN Y AUTORIZACIÓN")
+    print("-" * 60)
+    from src.auth.auth_service import AuthService
+
+    auth = AuthService()
+
+    # Registrar usuarios para pruebas
+    auth.register_user('user1', 'password1', 'user')
+    auth.register_user('admin1', 'password2', 'admin')
+
+    # Intento de login fallido
+    exito, msg = auth.login('user1', 'wrongpassword')
+    print(f"  • Intento login fallido (user1): {'✓' if not exito else '✗'} {msg}")
+
+    # Intento de login correcto
+    exito, msg = auth.login('user1', 'password1')
+    print(f"  • Login correcto (user1): {'✓' if exito else '✗'} {msg}")
+
+    # Comprobar autorización (user no puede registrar cursos)
+    autorizado = auth.authorize('admin')
+    print(f"  • Autorización para registrar curso (user1 as admin): {'✓ (rechazado correctamente)' if not autorizado else '✗ (debió rechazarse)'}")
+
+    # Login como admin y comprobar autorización
+    auth.logout()
+    exito, msg = auth.login('admin1', 'password2')
+    print(f"  • Login correcto (admin1): {'✓' if exito else '✗'} {msg}")
+    autorizado = auth.authorize('admin')
+    print(f"  • Autorización para registrar curso (admin1): {'✓' if autorizado else '✗'}")
+
     print("\n" + "="*60)
     print("  TODAS LAS PRUEBAS COMPLETADAS EXITOSAMENTE ✓")
     print("="*60)

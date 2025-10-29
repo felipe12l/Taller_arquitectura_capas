@@ -1,6 +1,6 @@
 # Diagrama de Arquitectura del Sistema Académico
 
-## Estructura de 3 Capas
+## Estructura extendida con Capa de Autenticación
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
@@ -18,11 +18,30 @@
 ║  │  • registrar_estudiante()                                   │    ║
 ║  │  • listar_estudiantes()                                     │    ║
 ║  │  • buscar_estudiante()                                      │    ║
-║  │  • registrar_curso()                                        │    ║
+║  │  • registrar_curso() (requiere autorización)                │    ║
 ║  │  • matricular_estudiante()                                  │    ║
 ║  └─────────────────────────────────────────────────────────────┘    ║
 ║                              │                                        ║
 ║                              │ llama a                                ║
+║                              ▼                                        ║
+╚═══════════════════════════════════════════════════════════════════════╝
+                               │
+                               │
+╔═══════════════════════════════════════════════════════════════════════╗
+║                   CAPA DE AUTENTICACIÓN (nueva)                        ║
+║                       (src/auth/)                                       ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║                                                                       ║
+║  ┌─────────────────────────────────────────────────────────────┐    ║
+║  │            AuthService / UserDAO (auth_service.py)          │    ║
+║  │                                                             │    ║
+║  │  • register_user(username,password,role)                    │    ║
+║  │  • login(username,password)                                 │    ║
+║  │  • authorize(required_role)                                 │    ║
+║  │  • registra intentos fallidos en archivo (auth.log)         │    ║
+║  └─────────────────────────────────────────────────────────────┘    ║
+║                              │                                        ║
+║                              │ valida / controla                     ║
 ║                              ▼                                        ║
 ╚═══════════════════════════════════════════════════════════════════════╝
                                │

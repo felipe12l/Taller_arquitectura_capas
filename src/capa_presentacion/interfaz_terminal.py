@@ -6,6 +6,7 @@ Responsabilidad: Interactuar con el usuario, mostrar menús y resultados
 from src.capa_negocio.gestor_matriculas import GestorMatriculas
 from src.capa_negocio.gestor_cursos import GestorCursos
 from src.capa_negocio.gestor_estudiantes import GestorEstudiantes
+from src.auth.auth_service import AuthService
 import sys
 import os
 
@@ -22,6 +23,8 @@ class InterfazUsuario:
         self.gestor_estudiantes = GestorEstudiantes()
         self.gestor_cursos = GestorCursos()
         self.gestor_matriculas = GestorMatriculas()
+        # Servicio de autenticación
+        self.auth_service = AuthService()
 
         # Vincular los DAOs compartidos para que la matrícula pueda validar
         self.gestor_matriculas.vincular_daos(
@@ -174,6 +177,12 @@ class InterfazUsuario:
         print("\n" + "-"*50)
         print("    REGISTRAR NUEVO CURSO")
         print("-"*50)
+
+        # Control de permisos en la capa de Autenticación
+        if not self.auth_service.authorize('admin'):
+            print("\n❌ Acceso denegado: se requiere rol 'admin' para registrar cursos")
+            self.pausar()
+            return
 
         codigo = input("\nCódigo del curso: ")
         nombre = input("Nombre del curso: ")
@@ -328,10 +337,18 @@ class InterfazUsuario:
 
     def ejecutar(self):
         """Método principal que ejecuta la aplicación"""
+        # Solicitar autenticación antes de permitir operaciones
+        if not self._login_screen():
+            print("Saliendo del sistema.")
+            return
+
         while True:
             self.limpiar_pantalla()
             self.mostrar_menu_principal()
 
+            usuario = self.auth_service.current_user or {'username': '---', 'role': '---'}
+            print(f"\nUsuario: {usuario.get('username')} (rol: {usuario.get('role')})")
+            print("9. Cerrar sesión")
             opcion = input("\nSeleccione una opción: ")
 
             if opcion == '1':
@@ -342,10 +359,62 @@ class InterfazUsuario:
                 self.menu_matriculas()
             elif opcion == '4':
                 self.menu_consultas()
+            elif opcion == '9':
+                self.auth_service.logout()
+                print("Sesión cerrada.")
+                self.pausar()
+                if not self._login_screen():
+                    print("Saliendo del sistema.")
+                    return
             elif opcion == '0':
                 print("\n¡Gracias por usar el Sistema Académico!")
                 print("Hasta pronto.\n")
                 break
+            else:
+                print("\n❌ Opción no válida")
+                self.pausar()
+
+    def _login_screen(self):
+        """Pantalla que solicita inicio de sesión o registro de usuario.
+
+        Returns True si se autenticó un usuario, False para salir.
+        """
+        while True:
+            self.limpiar_pantalla()
+            print("\n" + "="*50)
+            print("    AUTENTICACIÓN - SISTEMA ACADÉMICO")
+            print("="*50)
+            print("\n1. Iniciar sesión")
+            print("2. Registrar nuevo usuario")
+            print("0. Salir")
+
+            opcion = input("\nSeleccione una opción: ")
+
+            if opcion == '1':
+                username = input("\nUsuario: ")
+                password = input("Contraseña: ")
+                exito, msg = self.auth_service.login(username, password)
+                if exito:
+                    print(f"\n✓ {msg}")
+                    self.pausar()
+                    return True
+                else:
+                    print(f"\n❌ {msg}")
+                    self.pausar()
+            elif opcion == '2':
+                print("\nRegistro de nuevo usuario")
+                username = input("Usuario: ")
+                password = input("Contraseña: ")
+                role = input("Rol (admin/user). Por defecto 'user': ")
+                role = role.strip() or 'user'
+                exito, msg = self.auth_service.register_user(username, password, role)
+                if exito:
+                    print(f"\n✓ {msg}")
+                else:
+                    print(f"\n❌ {msg}")
+                self.pausar()
+            elif opcion == '0':
+                return False
             else:
                 print("\n❌ Opción no válida")
                 self.pausar()
